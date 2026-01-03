@@ -53,18 +53,34 @@ pipeline {
                 script {
                     try {
                         def scannerHome = tool 'SonarQubeScanner'
+                        echo "SonarQube Scanner found at: ${scannerHome}"
+                        
                         withSonarQubeEnv('SonarQube') {
+                            echo "SonarQube Server: ${env.SONAR_HOST_URL}"
+                            echo "Project Key: ecommerce-app"
+                            
                             sh """
                                 ${scannerHome}/bin/sonar-scanner \
                                     -Dsonar.projectKey=ecommerce-app \
+                                    -Dsonar.projectName='E-Commerce Application' \
                                     -Dsonar.sources=server,public \
-                                    -Dsonar.host.url=${SONAR_HOST_URL} \
-                                    -Dsonar.login=${SONAR_TOKEN}
+                                    -Dsonar.host.url=${env.SONAR_HOST_URL} \
+                                    -Dsonar.login=${env.SONAR_TOKEN} \
+                                    -Dsonar.sourceEncoding=UTF-8
                             """
+                            
+                            echo "✅ SonarQube analysis completed successfully!"
+                            echo "📊 View results at: ${env.SONAR_HOST_URL}/dashboard?id=ecommerce-app"
                         }
                     } catch (Exception e) {
-                        echo "⚠️ SonarQube not configured, skipping analysis"
-                        echo "To enable SonarQube: Configure SonarQubeScanner tool in Jenkins Global Tool Configuration"
+                        echo "❌ SonarQube analysis failed: ${e.getMessage()}"
+                        echo "Stack trace: ${e.getStackTrace().join('\\n')}"
+                        echo ""
+                        echo "⚠️ Troubleshooting steps:"
+                        echo "1. Verify SonarQube server is accessible: ${env.SONAR_HOST_URL}"
+                        echo "2. Check project 'ecommerce-app' exists in SonarQube"
+                        echo "3. Verify token has 'Execute Analysis' permission"
+                        echo "4. Check SonarQubeScanner tool path in Jenkins Global Tool Configuration"
                         // Don't fail the build
                     }
                 }
@@ -76,11 +92,18 @@ pipeline {
                 echo 'Waiting for SonarQube Quality Gate...'
                 script {
                     try {
-                        timeout(time: 5, unit: 'MINUTES') {
-                            waitForQualityGate abortPipeline: false
+                        def qg = waitForQualityGate abortPipeline: false
+                        if (qg.status != 'OK') {
+                            echo "⚠️ Quality Gate status: ${qg.status}"
+                        } else {
+                            echo "✅ Quality Gate passed!"
                         }
                     } catch (Exception e) {
-                        echo "⚠️ SonarQube Quality Gate not configured, skipping"
+                        echo "⚠️ SonarQube Quality Gate error: ${e.getMessage()}"
+                        echo "This might happen if:"
+                        echo "1. Analysis hasn't completed yet"
+                        echo "2. SonarQube server is not accessible"
+                        echo "3. Project doesn't exist in SonarQube"
                         // Don't fail the build
                     }
                 }
