@@ -9,9 +9,14 @@ pipeline {
     stages {
         stage('Git Checkout') {
             steps {
-                echo 'Checking out code from repository...'
-                checkout scm
-                sh 'git rev-parse HEAD > .git/commit-id'
+                echo 'Checking out code from public repository...'
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: '*/master']],
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/manjukolkar/CI-Project.git'
+                    ]]
+                ])
                 script {
                     env.GIT_COMMIT = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
                     env.IMAGE_TAG = "${env.BUILD_NUMBER}-${env.GIT_COMMIT.take(7)}"
