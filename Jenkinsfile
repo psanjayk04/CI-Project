@@ -91,9 +91,14 @@ pipeline {
             steps {
                 echo 'Building Docker image...'
                 script {
+                    // Ensure IMAGE_TAG is set
+                    if (!env.IMAGE_TAG) {
+                        env.IMAGE_TAG = "${env.BUILD_NUMBER}-${env.GIT_COMMIT.take(7)}"
+                    }
+                    echo "Building image with tag: ${env.IMAGE_TAG}"
                     sh """
-                        docker build -t ${DOCKER_HUB_REPO}:${IMAGE_TAG} .
-                        docker tag ${DOCKER_HUB_REPO}:${IMAGE_TAG} ${DOCKER_HUB_REPO}:latest
+                        docker build -t ${env.DOCKER_HUB_REPO}:${env.IMAGE_TAG} .
+                        docker tag ${env.DOCKER_HUB_REPO}:${env.IMAGE_TAG} ${env.DOCKER_HUB_REPO}:latest
                     """
                 }
             }
@@ -114,11 +119,15 @@ pipeline {
             steps {
                 echo 'Pushing Docker image to Docker Hub...'
                 script {
+                    // Ensure IMAGE_TAG is set
+                    if (!env.IMAGE_TAG) {
+                        env.IMAGE_TAG = "${env.BUILD_NUMBER}-${env.GIT_COMMIT.take(7)}"
+                    }
                     sh """
-                        docker push ${DOCKER_HUB_REPO}:${IMAGE_TAG}
-                        docker push ${DOCKER_HUB_REPO}:latest
+                        docker push ${env.DOCKER_HUB_REPO}:${env.IMAGE_TAG}
+                        docker push ${env.DOCKER_HUB_REPO}:latest
                     """
-                    echo "Image pushed successfully: ${DOCKER_HUB_REPO}:${IMAGE_TAG}"
+                    echo "Image pushed successfully: ${env.DOCKER_HUB_REPO}:${env.IMAGE_TAG}"
                 }
             }
         }
