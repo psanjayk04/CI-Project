@@ -9,7 +9,7 @@ COPY package*.json ./
 # Install dependencies
 RUN npm ci --only=production
 
-# Production stage
+# Production stage-test
 FROM node:18-alpine
 
 WORKDIR /app
