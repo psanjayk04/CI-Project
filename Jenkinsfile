@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_HUB_REPO = 'manjukolkar007/ecommerce-app'   // Your Docker Hub repo
+        DOCKER_HUB_REPO = 'psanjayk04/ecommerce-app'   // Your Docker Hub repo
     }
 
     stages {
@@ -10,7 +10,7 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 echo '📦 Cloning repository from GitHub...'
-                git branch: 'master', url: 'https://github.com/manjukolkar/CI-Project.git'
+                git branch: 'master', url: 'https://github.com/psanjayk04/CI-Project.git'
             }
         }
 
